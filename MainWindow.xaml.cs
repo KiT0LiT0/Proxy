@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -32,6 +33,8 @@ namespace ProxyShellReady
         private bool _isConnected;
         private bool _isBusy;
         private bool _settingsVisible;
+        private RuleRoutingMode _selectedRuleCategory = RuleRoutingMode.Proxy;
+        private ICollectionView _rulesView;
 
         public MainWindow()
         {
@@ -43,7 +46,9 @@ namespace ProxyShellReady
             _connectionTimer.Tick += ConnectionTimer_Tick;
 
             AppsList.ItemsSource = _selectedApps;
-            RulesListBox.ItemsSource = _ruleFiles;
+            _rulesView = CollectionViewSource.GetDefaultView(_ruleFiles);
+            _rulesView.Filter = FilterRuleFileByCategory;
+            RulesListBox.ItemsSource = _rulesView;
             RuleFilesSettingsListBox.ItemsSource = _ruleFiles;
 
             _state = StateStore.Load();
@@ -54,6 +59,7 @@ namespace ProxyShellReady
             UpdateBottomContent();
             UpdateAppsEmptyState();
             UpdateRuleFilesEmptyState();
+            UpdateRuleCategoryUi();
             UpdateThemeSelectionUi();
             AppendLog("Приложение запущено.");
         }
@@ -466,8 +472,18 @@ namespace ProxyShellReady
             item.EntryCount = item.Entries.Count;
             item.ServiceSummary = BuildServiceSummary(item.Entries);
             item.Name = string.IsNullOrWhiteSpace(item.Name) ? Path.GetFileName(item.FullPath) : item.Name;
+            if (_rulesView != null)
+                _rulesView.Refresh();
             if (log)
                 AppendLog("Загружен файл правил: " + item.Name + " (" + item.EntryCount + " записей, авто-режим " + item.RoutingMode + ", " + item.ServiceSummary + ")");
+        }
+
+        private bool FilterRuleFileByCategory(object item)
+        {
+            RuleFileItem ruleFile = item as RuleFileItem;
+            if (ruleFile == null)
+                return false;
+            return ruleFile.RoutingMode == _selectedRuleCategory;
         }
 
         private string BuildServiceSummary(IReadOnlyCollection<RuleEntry> entries)
@@ -510,9 +526,54 @@ namespace ProxyShellReady
 
         private void UpdateRuleFilesEmptyState()
         {
-            Visibility visible = _ruleFiles.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            bool hasVisibleRule = _ruleFiles.Any(file => file.RoutingMode == _selectedRuleCategory);
+            Visibility visible = hasVisibleRule ? Visibility.Collapsed : Visibility.Visible;
             EmptyRulesText.Visibility = visible;
-            SettingsEmptyRulesText.Visibility = visible;
+            SettingsEmptyRulesText.Visibility = _ruleFiles.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void ProxyCategoryButton_Click(object sender, RoutedEventArgs e)
+        {
+            _selectedRuleCategory = RuleRoutingMode.Proxy;
+            if (_rulesView != null)
+                _rulesView.Refresh();
+            UpdateRuleCategoryUi();
+            UpdateRuleFilesEmptyState();
+        }
+
+        private void DirectCategoryButton_Click(object sender, RoutedEventArgs e)
+        {
+            _selectedRuleCategory = RuleRoutingMode.Direct;
+            if (_rulesView != null)
+                _rulesView.Refresh();
+            UpdateRuleCategoryUi();
+            UpdateRuleFilesEmptyState();
+        }
+
+        private void BlockCategoryButton_Click(object sender, RoutedEventArgs e)
+        {
+            _selectedRuleCategory = RuleRoutingMode.Block;
+            if (_rulesView != null)
+                _rulesView.Refresh();
+            UpdateRuleCategoryUi();
+            UpdateRuleFilesEmptyState();
+        }
+
+        private void UpdateRuleCategoryUi()
+        {
+            ProxyCategoryUnderline.Visibility = _selectedRuleCategory == RuleRoutingMode.Proxy ? Visibility.Visible : Visibility.Collapsed;
+            DirectCategoryUnderline.Visibility = _selectedRuleCategory == RuleRoutingMode.Direct ? Visibility.Visible : Visibility.Collapsed;
+            BlockCategoryUnderline.Visibility = _selectedRuleCategory == RuleRoutingMode.Block ? Visibility.Visible : Visibility.Collapsed;
+
+            ProxyCategoryText.Foreground = _selectedRuleCategory == RuleRoutingMode.Proxy
+                ? CreateBrushFromHex(GetBrushColorHex("PrimaryTextBrush"))
+                : CreateBrushFromHex(GetBrushColorHex("SecondaryTextBrush"));
+            DirectCategoryText.Foreground = _selectedRuleCategory == RuleRoutingMode.Direct
+                ? CreateBrushFromHex(GetBrushColorHex("PrimaryTextBrush"))
+                : CreateBrushFromHex(GetBrushColorHex("SecondaryTextBrush"));
+            BlockCategoryText.Foreground = _selectedRuleCategory == RuleRoutingMode.Block
+                ? CreateBrushFromHex(GetBrushColorHex("PrimaryTextBrush"))
+                : CreateBrushFromHex(GetBrushColorHex("SecondaryTextBrush"));
         }
 
         private void UpdateBottomContent()

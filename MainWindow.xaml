@@ -337,6 +337,41 @@
                                     <Grid x:Name="RulesPanel">
                                         <Border CornerRadius="14" BorderBrush="#2D3647" BorderThickness="1" ClipToBounds="True" Background="{DynamicResource InnerCardBrush}">
                                             <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="*"/>
+                                                </Grid.RowDefinitions>
+
+                                                <Grid Margin="14,10,14,0">
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="2"/>
+                                                    </Grid.RowDefinitions>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="80"/>
+                                                        <ColumnDefinition Width="22"/>
+                                                        <ColumnDefinition Width="80"/>
+                                                        <ColumnDefinition Width="22"/>
+                                                        <ColumnDefinition Width="80"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <Button x:Name="ProxyCategoryButton" Grid.Column="0" Click="ProxyCategoryButton_Click" Style="{StaticResource FlatTabButtonStyle}">
+                                                        <TextBlock x:Name="ProxyCategoryText" Text="Proxy" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                    </Button>
+                                                    <Button x:Name="DirectCategoryButton" Grid.Column="2" Click="DirectCategoryButton_Click" Style="{StaticResource FlatTabButtonStyle}">
+                                                        <TextBlock x:Name="DirectCategoryText" Text="Direct" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                                    </Button>
+                                                    <Button x:Name="BlockCategoryButton" Grid.Column="4" Click="BlockCategoryButton_Click" Style="{StaticResource FlatTabButtonStyle}">
+                                                        <TextBlock x:Name="BlockCategoryText" Text="Block" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                                    </Button>
+
+                                                    <Border x:Name="ProxyCategoryUnderline" Grid.Row="1" Grid.Column="0" Height="2" Background="{DynamicResource AccentBrush}" CornerRadius="1"/>
+                                                    <Border x:Name="DirectCategoryUnderline" Grid.Row="1" Grid.Column="2" Height="2" Background="{DynamicResource AccentBrush}" CornerRadius="1" Visibility="Collapsed"/>
+                                                    <Border x:Name="BlockCategoryUnderline" Grid.Row="1" Grid.Column="4" Height="2" Background="{DynamicResource AccentBrush}" CornerRadius="1" Visibility="Collapsed"/>
+                                                </Grid>
+
+                                                <Grid Grid.Row="1" Margin="0,6,0,0">
                                                 <ListBox x:Name="RulesListBox" Style="{StaticResource ListBoxChromeStyle}">
                                                     <ListBox.ItemContainerStyle>
                                                         <Style TargetType="ListBoxItem">
@@ -387,7 +422,8 @@
                                                     </ListBox.ItemTemplate>
                                                 </ListBox>
 
-                                                <TextBlock x:Name="EmptyRulesText" Text="Пока не добавлено ни одного русета" FontSize="14" Foreground="{DynamicResource SecondaryTextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
+                                                <TextBlock x:Name="EmptyRulesText" Text="В этой категории пока нет русетов" FontSize="14" Foreground="{DynamicResource SecondaryTextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
+                                                </Grid>
                                             </Grid>
                                         </Border>
                                     </Grid>
