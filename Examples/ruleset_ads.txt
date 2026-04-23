@@ -1,0 +1,5 @@
+domain:ads.google.com
+domain:doubleclick.net
+domain:googlesyndication.com
+domain:ads.mopub.com
+domain:app-measurement.com

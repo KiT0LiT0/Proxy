@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.37111.16 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProxyShellReady", "ProxyShellReady.csproj", "{AA1AA253-19AB-C482-6C37-EC63E5962A07}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AA1AA253-19AB-C482-6C37-EC63E5962A07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA1AA253-19AB-C482-6C37-EC63E5962A07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA1AA253-19AB-C482-6C37-EC63E5962A07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA1AA253-19AB-C482-6C37-EC63E5962A07}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D491714F-FF3F-4AEE-A24C-CA0E6A749434}
+	EndGlobalSection
+EndGlobal
