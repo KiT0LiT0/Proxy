@@ -23,6 +23,9 @@ namespace ProxyShellReady.Services
                 if (line.StartsWith("#") || line.StartsWith("//"))
                     continue;
 
+                if (IsSectionLabel(line))
+                    continue;
+
                 if (line.StartsWith("domain:", StringComparison.OrdinalIgnoreCase))
                 {
                     string value = line.Substring("domain:".Length).Trim();
@@ -62,9 +65,47 @@ namespace ProxyShellReady.Services
                     }
                     continue;
                 }
+
+                if (LooksLikeDomain(line))
+                {
+                    result.Add(new RuleEntry { Type = RuleEntryType.DomainSuffix, Value = line });
+                    continue;
+                }
             }
 
             return result;
+        }
+
+        private static bool IsSectionLabel(string line)
+        {
+            if (line.StartsWith("[") && line.EndsWith("]"))
+                return true;
+
+            if (line.EndsWith(":") && line.IndexOf(' ') < 0)
+            {
+                string label = line.Substring(0, line.Length - 1);
+                if (!label.Contains("."))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static bool LooksLikeDomain(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return false;
+
+            if (value.IndexOf(' ') >= 0)
+                return false;
+
+            if (!value.Contains("."))
+                return false;
+
+            if (value.Contains(":"))
+                return false;
+
+            return true;
         }
     }
 }
