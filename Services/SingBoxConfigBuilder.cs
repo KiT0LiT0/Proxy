@@ -11,6 +11,13 @@ namespace ProxyShellReady.Services
     {
         public static string Build(AppState state, IReadOnlyCollection<RuleFileItem> ruleFiles, IReadOnlyCollection<AppEntry> selectedApps)
         {
+            List<string> appSelectionProcessNames = selectedApps
+                .Where(a => a.IsEnabled)
+                .Select(a => Path.GetFileName(a.FullPath))
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
             List<string> proxyDomainSuffixes = new List<string>();
             List<string> directDomainSuffixes = new List<string>();
             List<string> blockDomainSuffixes = new List<string>();
@@ -32,11 +39,9 @@ namespace ProxyShellReady.Services
 
             if (state.ConnectionMode == ConnectionMode.AppSelection)
             {
-                foreach (AppEntry app in selectedApps.Where(a => a.IsEnabled))
+                foreach (string appName in appSelectionProcessNames)
                 {
-                    string name = Path.GetFileName(app.FullPath);
-                    if (!string.IsNullOrWhiteSpace(name))
-                        proxyProcessNames.Add(name);
+                    proxyProcessNames.Add(appName);
                 }
             }
 
@@ -123,11 +128,17 @@ namespace ProxyShellReady.Services
                 ["outbound"] = "direct"
             });
 
+            string finalOutbound = "direct";
+            if (state.ConnectionMode == ConnectionMode.WholeComputer)
+                finalOutbound = "main";
+            else if (state.ConnectionMode == ConnectionMode.AppSelection && appSelectionProcessNames.Count > 0)
+                finalOutbound = "main";
+
             Dictionary<string, object> route = new Dictionary<string, object>
             {
                 ["auto_detect_interface"] = true,
                 ["rules"] = rules.ToArray(),
-                ["final"] = state.ConnectionMode == ConnectionMode.WholeComputer ? "main" : "direct"
+                ["final"] = finalOutbound
             };
 
             Dictionary<string, object> root = new Dictionary<string, object>
@@ -148,7 +159,7 @@ namespace ProxyShellReady.Services
                         }
                     }
                 },
-                ["inbounds"] = BuildInbounds(state.LocalMode, state.ConnectionMode),
+                ["inbounds"] = BuildInbounds(state.LocalMode, state.ConnectionMode, appSelectionProcessNames),
                 ["outbounds"] = new object[]
                 {
                     BuildMainOutbound(state),
@@ -205,23 +216,28 @@ namespace ProxyShellReady.Services
                 .ToList();
         }
 
-        private static object[] BuildInbounds(LocalProxyMode mode, ConnectionMode connectionMode)
+        private static object[] BuildInbounds(LocalProxyMode mode, ConnectionMode connectionMode, IReadOnlyCollection<string> appSelectionProcessNames)
         {
             if (mode == LocalProxyMode.Tun || connectionMode == ConnectionMode.AppSelection)
             {
+                Dictionary<string, object> tunInbound = new Dictionary<string, object>
+                {
+                    ["type"] = "tun",
+                    ["tag"] = "tun-in",
+                    ["interface_name"] = "ProxyShellTun",
+                    ["address"] = new[] { "172.19.0.1/30" },
+                    ["mtu"] = 1400,
+                    ["auto_route"] = true,
+                    ["strict_route"] = false,
+                    ["stack"] = "system"
+                };
+
+                if (connectionMode == ConnectionMode.AppSelection && appSelectionProcessNames.Count > 0)
+                    tunInbound["include_process"] = appSelectionProcessNames.ToArray();
+
                 return new object[]
                 {
-                    new Dictionary<string, object>
-                    {
-                        ["type"] = "tun",
-                        ["tag"] = "tun-in",
-                        ["interface_name"] = "ProxyShellTun",
-                        ["address"] = new[] { "172.19.0.1/30" },
-                        ["mtu"] = 1400,
-                        ["auto_route"] = true,
-                        ["strict_route"] = false,
-                        ["stack"] = "system"
-                    }
+                    tunInbound
                 };
             }
 
