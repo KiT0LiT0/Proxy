@@ -17,6 +17,12 @@ namespace ProxyShellReady.Services
                 .Where(x => !string.IsNullOrWhiteSpace(x))
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
+            List<string> appSelectionProcessPaths = selectedApps
+                .Where(a => a.IsEnabled)
+                .Select(a => a.FullPath)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
 
             List<string> proxyDomainSuffixes = new List<string>();
             List<string> directDomainSuffixes = new List<string>();
@@ -55,7 +61,7 @@ namespace ProxyShellReady.Services
 
             List<Dictionary<string, object>> rules = new List<Dictionary<string, object>>();
 
-            if (blockDomainSuffixes.Count > 0)
+            if (state.ConnectionMode == ConnectionMode.WholeComputer && blockDomainSuffixes.Count > 0)
             {
                 rules.Add(new Dictionary<string, object>
                 {
@@ -73,7 +79,7 @@ namespace ProxyShellReady.Services
                 });
             }
 
-            if (directDomainSuffixes.Count > 0)
+            if (state.ConnectionMode == ConnectionMode.WholeComputer && directDomainSuffixes.Count > 0)
             {
                 rules.Add(new Dictionary<string, object>
                 {
@@ -91,7 +97,7 @@ namespace ProxyShellReady.Services
                 });
             }
 
-            if (proxyDomainSuffixes.Count > 0)
+            if (state.ConnectionMode == ConnectionMode.WholeComputer && proxyDomainSuffixes.Count > 0)
             {
                 rules.Add(new Dictionary<string, object>
                 {
@@ -128,11 +134,16 @@ namespace ProxyShellReady.Services
                 ["outbound"] = "direct"
             });
 
-            string finalOutbound = "direct";
-            if (state.ConnectionMode == ConnectionMode.WholeComputer)
-                finalOutbound = "main";
-            else if (state.ConnectionMode == ConnectionMode.AppSelection && appSelectionProcessNames.Count > 0)
-                finalOutbound = "main";
+            if (state.ConnectionMode == ConnectionMode.AppSelection && appSelectionProcessPaths.Count > 0)
+            {
+                rules.Add(new Dictionary<string, object>
+                {
+                    ["process_path"] = appSelectionProcessPaths.ToArray(),
+                    ["outbound"] = "main"
+                });
+            }
+
+            string finalOutbound = state.ConnectionMode == ConnectionMode.WholeComputer ? "main" : "direct";
 
             Dictionary<string, object> route = new Dictionary<string, object>
             {
@@ -159,7 +170,7 @@ namespace ProxyShellReady.Services
                         }
                     }
                 },
-                ["inbounds"] = BuildInbounds(state.LocalMode, state.ConnectionMode, appSelectionProcessNames),
+                ["inbounds"] = BuildInbounds(state.LocalMode, state.ConnectionMode),
                 ["outbounds"] = new object[]
                 {
                     BuildMainOutbound(state),
@@ -216,28 +227,23 @@ namespace ProxyShellReady.Services
                 .ToList();
         }
 
-        private static object[] BuildInbounds(LocalProxyMode mode, ConnectionMode connectionMode, IReadOnlyCollection<string> appSelectionProcessNames)
+        private static object[] BuildInbounds(LocalProxyMode mode, ConnectionMode connectionMode)
         {
             if (mode == LocalProxyMode.Tun || connectionMode == ConnectionMode.AppSelection)
             {
-                Dictionary<string, object> tunInbound = new Dictionary<string, object>
-                {
-                    ["type"] = "tun",
-                    ["tag"] = "tun-in",
-                    ["interface_name"] = "ProxyShellTun",
-                    ["address"] = new[] { "172.19.0.1/30" },
-                    ["mtu"] = 1400,
-                    ["auto_route"] = true,
-                    ["strict_route"] = false,
-                    ["stack"] = "system"
-                };
-
-                if (connectionMode == ConnectionMode.AppSelection && appSelectionProcessNames.Count > 0)
-                    tunInbound["include_process"] = appSelectionProcessNames.ToArray();
-
                 return new object[]
                 {
-                    tunInbound
+                    new Dictionary<string, object>
+                    {
+                        ["type"] = "tun",
+                        ["tag"] = "tun-in",
+                        ["interface_name"] = "ProxyShellTun",
+                        ["address"] = new[] { "172.19.0.1/30" },
+                        ["mtu"] = 1400,
+                        ["auto_route"] = true,
+                        ["strict_route"] = false,
+                        ["stack"] = "system"
+                    }
                 };
             }
 
