@@ -11,6 +11,7 @@ namespace ProxyShellReady.Models
         private string _fullPath = string.Empty;
         private bool _isEnabled = true;
         private int _entryCount;
+        private RuleRoutingMode _routingMode = RuleRoutingMode.Proxy;
 
         public string Name
         {
@@ -36,13 +37,19 @@ namespace ProxyShellReady.Models
             set { _entryCount = value; OnPropertyChanged(); OnPropertyChanged("DisplaySubtitle"); }
         }
 
+        public RuleRoutingMode RoutingMode
+        {
+            get { return _routingMode; }
+            set { _routingMode = value; OnPropertyChanged(); OnPropertyChanged("DisplaySubtitle"); }
+        }
+
         [JsonIgnore]
         public List<RuleEntry> Entries { get; set; } = new List<RuleEntry>();
 
         [JsonIgnore]
         public string DisplaySubtitle
         {
-            get { return EntryCount + " правил • " + FullPath; }
+            get { return EntryCount + " правил • " + RoutingMode + " • " + FullPath; }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

@@ -79,7 +79,8 @@ namespace ProxyShellReady
                 {
                     Name = file.Name,
                     FullPath = file.FullPath,
-                    IsEnabled = file.IsEnabled
+                    IsEnabled = file.IsEnabled,
+                    RoutingMode = file.RoutingMode
                 };
                 ReloadRuleFile(item, false);
                 _ruleFiles.Add(item);
@@ -445,11 +446,12 @@ namespace ProxyShellReady
                 {
                     Name = Path.GetFileName(filePath),
                     FullPath = filePath,
-                    IsEnabled = true
+                    IsEnabled = true,
+                    RoutingMode = RuleRoutingDetector.Detect(filePath)
                 };
                 ReloadRuleFile(item, true);
                 _ruleFiles.Add(item);
-                AppendLog("Добавлен русет: " + item.Name);
+                AppendLog("Добавлен русет: " + item.Name + " [" + item.RoutingMode + "]");
             }
 
             UpdateRuleFilesEmptyState();
@@ -462,7 +464,7 @@ namespace ProxyShellReady
             item.EntryCount = item.Entries.Count;
             item.Name = string.IsNullOrWhiteSpace(item.Name) ? Path.GetFileName(item.FullPath) : item.Name;
             if (log)
-                AppendLog("Загружен файл правил: " + item.Name + " (" + item.EntryCount + " записей)");
+                AppendLog("Загружен файл правил: " + item.Name + " (" + item.EntryCount + " записей, режим " + item.RoutingMode + ")");
         }
 
         private void RemoveRuleFileButton_Click(object sender, RoutedEventArgs e)
@@ -606,7 +608,8 @@ namespace ProxyShellReady
                     Name = file.Name,
                     FullPath = file.FullPath,
                     IsEnabled = file.IsEnabled,
-                    EntryCount = file.EntryCount
+                    EntryCount = file.EntryCount,
+                    RoutingMode = file.RoutingMode
                 };
             }).ToList();
 

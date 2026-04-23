@@ -11,17 +11,22 @@ namespace ProxyShellReady.Services
     {
         public static string Build(AppState state, IReadOnlyCollection<RuleFileItem> ruleFiles, IReadOnlyCollection<AppEntry> selectedApps)
         {
-            List<string> domainSuffixes = new List<string>();
-            List<string> processNames = new List<string>();
+            List<string> proxyDomainSuffixes = new List<string>();
+            List<string> directDomainSuffixes = new List<string>();
+            List<string> blockDomainSuffixes = new List<string>();
+
+            List<string> proxyProcessNames = new List<string>();
+            List<string> directProcessNames = new List<string>();
+            List<string> blockProcessNames = new List<string>();
 
             foreach (RuleFileItem file in ruleFiles.Where(r => r.IsEnabled))
             {
                 foreach (RuleEntry entry in file.Entries)
                 {
                     if (entry.Type == RuleEntryType.Domain || entry.Type == RuleEntryType.DomainSuffix)
-                        domainSuffixes.Add(entry.Value);
+                        AddByMode(file.RoutingMode, entry.Value, proxyDomainSuffixes, directDomainSuffixes, blockDomainSuffixes);
                     else if (entry.Type == RuleEntryType.ProcessName)
-                        processNames.Add(Path.GetFileName(entry.Value));
+                        AddByMode(file.RoutingMode, Path.GetFileName(entry.Value), proxyProcessNames, directProcessNames, blockProcessNames);
                 }
             }
 
@@ -31,21 +36,73 @@ namespace ProxyShellReady.Services
                 {
                     string name = Path.GetFileName(app.FullPath);
                     if (!string.IsNullOrWhiteSpace(name))
-                        processNames.Add(name);
+                        proxyProcessNames.Add(name);
                 }
             }
 
-            domainSuffixes = domainSuffixes
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
+            proxyDomainSuffixes = Normalize(proxyDomainSuffixes);
+            directDomainSuffixes = Normalize(directDomainSuffixes);
+            blockDomainSuffixes = Normalize(blockDomainSuffixes);
 
-            processNames = processNames
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
+            proxyProcessNames = Normalize(proxyProcessNames);
+            directProcessNames = Normalize(directProcessNames);
+            blockProcessNames = Normalize(blockProcessNames);
 
             List<Dictionary<string, object>> rules = new List<Dictionary<string, object>>();
+
+            if (blockDomainSuffixes.Count > 0)
+            {
+                rules.Add(new Dictionary<string, object>
+                {
+                    ["domain_suffix"] = blockDomainSuffixes.ToArray(),
+                    ["outbound"] = "block"
+                });
+            }
+
+            if (blockProcessNames.Count > 0)
+            {
+                rules.Add(new Dictionary<string, object>
+                {
+                    ["process_name"] = blockProcessNames.ToArray(),
+                    ["outbound"] = "block"
+                });
+            }
+
+            if (directDomainSuffixes.Count > 0)
+            {
+                rules.Add(new Dictionary<string, object>
+                {
+                    ["domain_suffix"] = directDomainSuffixes.ToArray(),
+                    ["outbound"] = "direct"
+                });
+            }
+
+            if (directProcessNames.Count > 0)
+            {
+                rules.Add(new Dictionary<string, object>
+                {
+                    ["process_name"] = directProcessNames.ToArray(),
+                    ["outbound"] = "direct"
+                });
+            }
+
+            if (proxyDomainSuffixes.Count > 0)
+            {
+                rules.Add(new Dictionary<string, object>
+                {
+                    ["domain_suffix"] = proxyDomainSuffixes.ToArray(),
+                    ["outbound"] = "main"
+                });
+            }
+
+            if (proxyProcessNames.Count > 0)
+            {
+                rules.Add(new Dictionary<string, object>
+                {
+                    ["process_name"] = proxyProcessNames.ToArray(),
+                    ["outbound"] = "main"
+                });
+            }
 
             rules.Add(new Dictionary<string, object>
             {
@@ -66,31 +123,11 @@ namespace ProxyShellReady.Services
                 ["outbound"] = "direct"
             });
 
-            if (domainSuffixes.Count > 0)
-            {
-                rules.Add(new Dictionary<string, object>
-                {
-                    ["domain_suffix"] = domainSuffixes.ToArray(),
-                    ["outbound"] = "main"
-                });
-            }
-
-            if (processNames.Count > 0)
-            {
-                rules.Add(new Dictionary<string, object>
-                {
-                    ["process_name"] = processNames.ToArray(),
-                    ["outbound"] = "main"
-                });
-            }
-
-            bool hasSpecificProxyRules = domainSuffixes.Count > 0 || processNames.Count > 0;
-
             Dictionary<string, object> route = new Dictionary<string, object>
             {
                 ["auto_detect_interface"] = true,
                 ["rules"] = rules.ToArray(),
-                ["final"] = (state.ConnectionMode == ConnectionMode.WholeComputer && !hasSpecificProxyRules) ? "main" : "direct"
+                ["final"] = state.ConnectionMode == ConnectionMode.WholeComputer ? "main" : "direct"
             };
 
             Dictionary<string, object> root = new Dictionary<string, object>
@@ -119,6 +156,11 @@ namespace ProxyShellReady.Services
                     {
                         ["type"] = "direct",
                         ["tag"] = "direct"
+                    },
+                    new Dictionary<string, object>
+                    {
+                        ["type"] = "block",
+                        ["tag"] = "block"
                     }
                 },
                 ["route"] = route
@@ -128,6 +170,39 @@ namespace ProxyShellReady.Services
             {
                 WriteIndented = true
             });
+        }
+
+        private static void AddByMode(
+            RuleRoutingMode mode,
+            string value,
+            List<string> proxyList,
+            List<string> directList,
+            List<string> blockList)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return;
+
+            if (mode == RuleRoutingMode.Direct)
+            {
+                directList.Add(value);
+                return;
+            }
+
+            if (mode == RuleRoutingMode.Block)
+            {
+                blockList.Add(value);
+                return;
+            }
+
+            proxyList.Add(value);
+        }
+
+        private static List<string> Normalize(List<string> values)
+        {
+            return values
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
         }
 
         private static object[] BuildInbounds(LocalProxyMode mode)
