@@ -35,7 +35,8 @@ namespace ProxyShellReady.Services
                         {
                             Type = RuleEntryType.DomainSuffix,
                             Value = value,
-                            Service = RuleServiceClassifier.Classify(RuleEntryType.DomainSuffix, value)
+                            Service = RuleServiceClassifier.Classify(RuleEntryType.DomainSuffix, value),
+                            IsEnabled = true
                         });
                     }
                     continue;
@@ -50,7 +51,8 @@ namespace ProxyShellReady.Services
                         {
                             Type = RuleEntryType.DomainSuffix,
                             Value = value,
-                            Service = RuleServiceClassifier.Classify(RuleEntryType.DomainSuffix, value)
+                            Service = RuleServiceClassifier.Classify(RuleEntryType.DomainSuffix, value),
+                            IsEnabled = true
                         });
                     }
                     continue;
@@ -65,7 +67,8 @@ namespace ProxyShellReady.Services
                         {
                             Type = RuleEntryType.ProcessName,
                             Value = value,
-                            Service = RuleServiceClassifier.Classify(RuleEntryType.ProcessName, value)
+                            Service = RuleServiceClassifier.Classify(RuleEntryType.ProcessName, value),
+                            IsEnabled = true
                         });
                     }
                     continue;
@@ -80,7 +83,8 @@ namespace ProxyShellReady.Services
                         {
                             Type = RuleEntryType.ProcessName,
                             Value = value,
-                            Service = RuleServiceClassifier.Classify(RuleEntryType.ProcessName, value)
+                            Service = RuleServiceClassifier.Classify(RuleEntryType.ProcessName, value),
+                            IsEnabled = true
                         });
                     }
                     continue;
@@ -92,7 +96,8 @@ namespace ProxyShellReady.Services
                     {
                         Type = RuleEntryType.DomainSuffix,
                         Value = line,
-                        Service = RuleServiceClassifier.Classify(RuleEntryType.DomainSuffix, line)
+                        Service = RuleServiceClassifier.Classify(RuleEntryType.DomainSuffix, line),
+                        IsEnabled = true
                     });
                     continue;
                 }

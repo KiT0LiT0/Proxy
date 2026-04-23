@@ -12,5 +12,6 @@ namespace ProxyShellReady.Models
         public RuleEntryType Type { get; set; }
         public string Value { get; set; }
         public string Service { get; set; } = "Unknown";
+        public bool IsEnabled { get; set; } = true;
     }
 }

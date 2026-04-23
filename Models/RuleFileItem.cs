@@ -50,7 +50,6 @@ namespace ProxyShellReady.Models
             set { _serviceSummary = value; OnPropertyChanged(); OnPropertyChanged("DisplaySubtitle"); }
         }
 
-        [JsonIgnore]
         public List<RuleEntry> Entries { get; set; } = new List<RuleEntry>();
 
         [JsonIgnore]

@@ -389,12 +389,19 @@
                                                     </ListBox.ItemContainerStyle>
                                                     <ListBox.ItemTemplate>
                                                         <DataTemplate>
+                                                            <DataTemplate.Resources>
+                                                                <CollectionViewSource x:Key="GroupedEntries" Source="{Binding Entries}">
+                                                                    <CollectionViewSource.GroupDescriptions>
+                                                                        <PropertyGroupDescription PropertyName="Service"/>
+                                                                    </CollectionViewSource.GroupDescriptions>
+                                                                </CollectionViewSource>
+                                                            </DataTemplate.Resources>
                                                             <Grid Margin="14,0">
                                                                 <Grid.RowDefinitions>
                                                                     <RowDefinition Height="Auto"/>
                                                                     <RowDefinition Height="1"/>
                                                                 </Grid.RowDefinitions>
-                                                                <Grid Margin="0,14,0,14">
+                                                                <Grid Margin="0,14,0,10">
                                                                     <Grid.ColumnDefinitions>
                                                                         <ColumnDefinition Width="52"/>
                                                                         <ColumnDefinition Width="14"/>
@@ -410,9 +417,52 @@
                                                                         </Border.Background>
                                                                         <Image Source="Assets1/file.png" Width="22" Height="22" Stretch="Uniform"/>
                                                                     </Border>
-                                                                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                                                    <StackPanel Grid.Column="2" VerticalAlignment="Top">
                                                                         <TextBlock Text="{Binding Name}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                                         <TextBlock Text="{Binding DisplaySubtitle}" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                                                                        <ListBox Margin="0,8,0,0"
+                                                                                 ItemsSource="{Binding Source={StaticResource GroupedEntries}}"
+                                                                                 MaxHeight="220"
+                                                                                 Background="Transparent"
+                                                                                 BorderThickness="0"
+                                                                                 ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                                                            <ListBox.GroupStyle>
+                                                                                <GroupStyle>
+                                                                                    <GroupStyle.HeaderTemplate>
+                                                                                        <DataTemplate>
+                                                                                            <TextBlock Foreground="{DynamicResource AccentSoftBrush}" FontSize="11" Margin="0,6,0,2">
+                                                                                                <Run Text="категория "/><Run Text="{Binding Name}"/><Run Text=" x"/><Run Text="{Binding ItemCount}"/><Run Text=":"/>
+                                                                                            </TextBlock>
+                                                                                        </DataTemplate>
+                                                                                    </GroupStyle.HeaderTemplate>
+                                                                                </GroupStyle>
+                                                                            </ListBox.GroupStyle>
+                                                                            <ListBox.ItemContainerStyle>
+                                                                                <Style TargetType="ListBoxItem">
+                                                                                    <Setter Property="Background" Value="Transparent"/>
+                                                                                    <Setter Property="BorderThickness" Value="0"/>
+                                                                                    <Setter Property="Padding" Value="0"/>
+                                                                                    <Setter Property="Margin" Value="0"/>
+                                                                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                                                                    <Setter Property="Template">
+                                                                                        <Setter.Value>
+                                                                                            <ControlTemplate TargetType="ListBoxItem"><ContentPresenter/></ControlTemplate>
+                                                                                        </Setter.Value>
+                                                                                    </Setter>
+                                                                                </Style>
+                                                                            </ListBox.ItemContainerStyle>
+                                                                            <ListBox.ItemTemplate>
+                                                                                <DataTemplate>
+                                                                                    <CheckBox IsChecked="{Binding IsEnabled, Mode=TwoWay}"
+                                                                                              Checked="RuleEntryCheckBox_Changed"
+                                                                                              Unchecked="RuleEntryCheckBox_Changed"
+                                                                                              Margin="0,2,0,2"
+                                                                                              Foreground="{DynamicResource SecondaryTextBrush}">
+                                                                                        <TextBlock Text="{Binding Value}" FontSize="11"/>
+                                                                                    </CheckBox>
+                                                                                </DataTemplate>
+                                                                            </ListBox.ItemTemplate>
+                                                                        </ListBox>
                                                                     </StackPanel>
                                                                     <ToggleButton Grid.Column="3" Style="{StaticResource RuleSwitchStyle}" IsChecked="{Binding IsEnabled, Mode=TwoWay}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                                                 </Grid>

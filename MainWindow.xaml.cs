@@ -87,7 +87,16 @@ namespace ProxyShellReady
                     Name = file.Name,
                     FullPath = file.FullPath,
                     IsEnabled = file.IsEnabled,
-                    RoutingMode = file.RoutingMode
+                    RoutingMode = file.RoutingMode,
+                    Entries = file.Entries != null
+                        ? file.Entries.Select(entry => new RuleEntry
+                        {
+                            Type = entry.Type,
+                            Value = entry.Value,
+                            Service = entry.Service,
+                            IsEnabled = entry.IsEnabled
+                        }).ToList()
+                        : new List<RuleEntry>()
                 };
                 ReloadRuleFile(item, false);
                 _ruleFiles.Add(item);
@@ -467,9 +476,10 @@ namespace ProxyShellReady
 
         private void ReloadRuleFile(RuleFileItem item, bool log)
         {
-            item.Entries = RuleParser.ParseFile(item.FullPath);
+            if (File.Exists(item.FullPath))
+                item.Entries = RuleParser.ParseFile(item.FullPath);
             item.RoutingMode = RuleRoutingDetector.Detect(item.FullPath, item.Entries);
-            item.EntryCount = item.Entries.Count;
+            item.EntryCount = item.Entries.Count(entry => entry.IsEnabled);
             item.ServiceSummary = BuildServiceSummary(item.Entries);
             item.Name = string.IsNullOrWhiteSpace(item.Name) ? Path.GetFileName(item.FullPath) : item.Name;
             if (_rulesView != null)
@@ -491,6 +501,9 @@ namespace ProxyShellReady
             Dictionary<string, int> serviceCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             foreach (RuleEntry entry in entries)
             {
+                if (!entry.IsEnabled)
+                    continue;
+
                 string service = string.IsNullOrWhiteSpace(entry.Service) ? "Other" : entry.Service;
                 if (!serviceCounts.ContainsKey(service))
                     serviceCounts[service] = 0;
@@ -501,6 +514,19 @@ namespace ProxyShellReady
                 .OrderByDescending(pair => pair.Value)
                 .Take(3)
                 .Select(pair => pair.Key + " x" + pair.Value));
+        }
+
+        private void RuleEntryCheckBox_Changed(object sender, RoutedEventArgs e)
+        {
+            foreach (RuleFileItem file in _ruleFiles)
+            {
+                file.EntryCount = file.Entries.Count(entry => entry.IsEnabled);
+                file.ServiceSummary = BuildServiceSummary(file.Entries);
+            }
+
+            if (_rulesView != null)
+                _rulesView.Refresh();
+            SaveState();
         }
 
         private void RemoveRuleFileButton_Click(object sender, RoutedEventArgs e)
@@ -690,7 +716,14 @@ namespace ProxyShellReady
                     FullPath = file.FullPath,
                     IsEnabled = file.IsEnabled,
                     EntryCount = file.EntryCount,
-                    RoutingMode = file.RoutingMode
+                    RoutingMode = file.RoutingMode,
+                    Entries = file.Entries.Select(entry => new RuleEntry
+                    {
+                        Type = entry.Type,
+                        Value = entry.Value,
+                        Service = entry.Service,
+                        IsEnabled = entry.IsEnabled
+                    }).ToList()
                 };
             }).ToList();
 

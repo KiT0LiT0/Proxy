@@ -36,6 +36,9 @@ namespace ProxyShellReady.Services
             {
                 foreach (RuleEntry entry in file.Entries)
                 {
+                    if (!entry.IsEnabled)
+                        continue;
+
                     if (entry.Type == RuleEntryType.Domain || entry.Type == RuleEntryType.DomainSuffix)
                         AddByMode(file.RoutingMode, entry.Value, proxyDomainSuffixes, directDomainSuffixes, blockDomainSuffixes);
                     else if (entry.Type == RuleEntryType.ProcessName)
