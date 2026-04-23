@@ -481,6 +481,7 @@ namespace ProxyShellReady
             item.RoutingMode = RuleRoutingDetector.Detect(item.FullPath, item.Entries);
             item.EntryCount = item.Entries.Count(entry => entry.IsEnabled);
             item.ServiceSummary = BuildServiceSummary(item.Entries);
+            item.ServiceGroups = BuildServiceGroups(item.Entries);
             item.Name = string.IsNullOrWhiteSpace(item.Name) ? Path.GetFileName(item.FullPath) : item.Name;
             if (_rulesView != null)
                 _rulesView.Refresh();
@@ -516,12 +517,27 @@ namespace ProxyShellReady
                 .Select(pair => pair.Key + " x" + pair.Value));
         }
 
+        private List<RuleServiceGroup> BuildServiceGroups(IReadOnlyCollection<RuleEntry> entries)
+        {
+            return entries
+                .Where(entry => entry.IsEnabled)
+                .GroupBy(entry => string.IsNullOrWhiteSpace(entry.Service) ? "Other" : entry.Service)
+                .OrderByDescending(group => group.Count())
+                .Select(group => new RuleServiceGroup
+                {
+                    Name = group.Key,
+                    Entries = group.ToList()
+                })
+                .ToList();
+        }
+
         private void RuleEntryCheckBox_Changed(object sender, RoutedEventArgs e)
         {
             foreach (RuleFileItem file in _ruleFiles)
             {
                 file.EntryCount = file.Entries.Count(entry => entry.IsEnabled);
                 file.ServiceSummary = BuildServiceSummary(file.Entries);
+                file.ServiceGroups = BuildServiceGroups(file.Entries);
             }
 
             if (_rulesView != null)

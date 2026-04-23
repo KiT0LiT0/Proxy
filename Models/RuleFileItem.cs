@@ -53,6 +53,9 @@ namespace ProxyShellReady.Models
         public List<RuleEntry> Entries { get; set; } = new List<RuleEntry>();
 
         [JsonIgnore]
+        public List<RuleServiceGroup> ServiceGroups { get; set; } = new List<RuleServiceGroup>();
+
+        [JsonIgnore]
         public string DisplaySubtitle
         {
             get
