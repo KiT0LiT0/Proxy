@@ -447,8 +447,7 @@ namespace ProxyShellReady
                 {
                     Name = Path.GetFileName(filePath),
                     FullPath = filePath,
-                    IsEnabled = true,
-                    RoutingMode = RuleRoutingDetector.Detect(filePath)
+                    IsEnabled = true
                 };
                 ReloadRuleFile(item, true);
                 _ruleFiles.Add(item);
@@ -462,10 +461,11 @@ namespace ProxyShellReady
         private void ReloadRuleFile(RuleFileItem item, bool log)
         {
             item.Entries = RuleParser.ParseFile(item.FullPath);
+            item.RoutingMode = RuleRoutingDetector.Detect(item.FullPath, item.Entries);
             item.EntryCount = item.Entries.Count;
             item.Name = string.IsNullOrWhiteSpace(item.Name) ? Path.GetFileName(item.FullPath) : item.Name;
             if (log)
-                AppendLog("Загружен файл правил: " + item.Name + " (" + item.EntryCount + " записей, режим " + item.RoutingMode + ")");
+                AppendLog("Загружен файл правил: " + item.Name + " (" + item.EntryCount + " записей, авто-режим " + item.RoutingMode + ")");
         }
 
         private void RemoveRuleFileButton_Click(object sender, RoutedEventArgs e)
