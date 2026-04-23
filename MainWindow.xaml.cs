@@ -216,8 +216,9 @@ namespace ProxyShellReady
             if (string.IsNullOrWhiteSpace(_state.SocksHost) || _state.SocksPort <= 0)
                 throw new InvalidOperationException("Укажи корректный SOCKS5 сервер и порт.");
 
-            if (_state.LocalMode == LocalProxyMode.Tun && !IsAdministrator())
-                throw new InvalidOperationException("Для TUN режима приложение нужно запускать от имени администратора.");
+            bool requiresTun = _state.LocalMode == LocalProxyMode.Tun || _state.ConnectionMode == ConnectionMode.AppSelection;
+            if (requiresTun && !IsAdministrator())
+                throw new InvalidOperationException("Для TUN режима (включая выбор приложений) приложение нужно запускать от имени администратора.");
 
             StatusTextBlock.Text = "СТАТУС: ПОДКЛЮЧЕНИЕ...";
             StatusDot.Fill = CreateBrushFromHex(GetBrushColorHex("WarningBrush"));

@@ -148,7 +148,7 @@ namespace ProxyShellReady.Services
                         }
                     }
                 },
-                ["inbounds"] = BuildInbounds(state.LocalMode),
+                ["inbounds"] = BuildInbounds(state.LocalMode, state.ConnectionMode),
                 ["outbounds"] = new object[]
                 {
                     BuildMainOutbound(state),
@@ -205,9 +205,9 @@ namespace ProxyShellReady.Services
                 .ToList();
         }
 
-        private static object[] BuildInbounds(LocalProxyMode mode)
+        private static object[] BuildInbounds(LocalProxyMode mode, ConnectionMode connectionMode)
         {
-            if (mode == LocalProxyMode.Tun)
+            if (mode == LocalProxyMode.Tun || connectionMode == ConnectionMode.AppSelection)
             {
                 return new object[]
                 {
@@ -233,7 +233,7 @@ namespace ProxyShellReady.Services
                     ["tag"] = "mixed-in",
                     ["listen"] = "127.0.0.1",
                     ["listen_port"] = 2080,
-                    ["set_system_proxy"] = true
+                    ["set_system_proxy"] = connectionMode == ConnectionMode.WholeComputer
                 }
             };
         }
