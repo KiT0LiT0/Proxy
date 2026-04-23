@@ -418,7 +418,7 @@
                                                                                 <DataTemplate>
                                                                                     <StackPanel Margin="0,0,0,6">
                                                                                         <TextBlock Foreground="{DynamicResource AccentSoftBrush}" FontSize="11" Margin="0,2,0,2">
-                                                                                            <Run Text="категория "/><Run Text="{Binding Name}"/><Run Text=" x"/><Run Text="{Binding Count}"/><Run Text=":"/>
+                                                                                            <Run Text="категория "/><Run Text="{Binding Name, Mode=OneWay}"/><Run Text=" x"/><Run Text="{Binding Count, Mode=OneWay}"/><Run Text=":"/>
                                                                                         </TextBlock>
                                                                                         <ItemsControl ItemsSource="{Binding Entries}">
                                                                                             <ItemsControl.ItemTemplate>
