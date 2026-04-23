@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -463,9 +464,27 @@ namespace ProxyShellReady
             item.Entries = RuleParser.ParseFile(item.FullPath);
             item.RoutingMode = RuleRoutingDetector.Detect(item.FullPath, item.Entries);
             item.EntryCount = item.Entries.Count;
+            item.ServiceSummary = BuildServiceSummary(item.Entries);
             item.Name = string.IsNullOrWhiteSpace(item.Name) ? Path.GetFileName(item.FullPath) : item.Name;
             if (log)
-                AppendLog("Загружен файл правил: " + item.Name + " (" + item.EntryCount + " записей, авто-режим " + item.RoutingMode + ")");
+                AppendLog("Загружен файл правил: " + item.Name + " (" + item.EntryCount + " записей, авто-режим " + item.RoutingMode + ", " + item.ServiceSummary + ")");
+        }
+
+        private string BuildServiceSummary(IReadOnlyCollection<RuleEntry> entries)
+        {
+            Dictionary<string, int> serviceCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            foreach (RuleEntry entry in entries)
+            {
+                string service = string.IsNullOrWhiteSpace(entry.Service) ? "Other" : entry.Service;
+                if (!serviceCounts.ContainsKey(service))
+                    serviceCounts[service] = 0;
+                serviceCounts[service]++;
+            }
+
+            return string.Join(", ", serviceCounts
+                .OrderByDescending(pair => pair.Value)
+                .Take(3)
+                .Select(pair => pair.Key + " x" + pair.Value));
         }
 
         private void RemoveRuleFileButton_Click(object sender, RoutedEventArgs e)

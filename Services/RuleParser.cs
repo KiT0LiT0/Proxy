@@ -31,7 +31,12 @@ namespace ProxyShellReady.Services
                     string value = line.Substring("domain:".Length).Trim();
                     if (!string.IsNullOrWhiteSpace(value))
                     {
-                        result.Add(new RuleEntry { Type = RuleEntryType.DomainSuffix, Value = value });
+                        result.Add(new RuleEntry
+                        {
+                            Type = RuleEntryType.DomainSuffix,
+                            Value = value,
+                            Service = RuleServiceClassifier.Classify(RuleEntryType.DomainSuffix, value)
+                        });
                     }
                     continue;
                 }
@@ -41,7 +46,12 @@ namespace ProxyShellReady.Services
                     string value = line.Substring("suffix:".Length).Trim();
                     if (!string.IsNullOrWhiteSpace(value))
                     {
-                        result.Add(new RuleEntry { Type = RuleEntryType.DomainSuffix, Value = value });
+                        result.Add(new RuleEntry
+                        {
+                            Type = RuleEntryType.DomainSuffix,
+                            Value = value,
+                            Service = RuleServiceClassifier.Classify(RuleEntryType.DomainSuffix, value)
+                        });
                     }
                     continue;
                 }
@@ -51,7 +61,12 @@ namespace ProxyShellReady.Services
                     string value = line.Substring("processName:".Length).Trim();
                     if (!string.IsNullOrWhiteSpace(value))
                     {
-                        result.Add(new RuleEntry { Type = RuleEntryType.ProcessName, Value = value });
+                        result.Add(new RuleEntry
+                        {
+                            Type = RuleEntryType.ProcessName,
+                            Value = value,
+                            Service = RuleServiceClassifier.Classify(RuleEntryType.ProcessName, value)
+                        });
                     }
                     continue;
                 }
@@ -61,14 +76,24 @@ namespace ProxyShellReady.Services
                     string value = line.Substring("process:".Length).Trim();
                     if (!string.IsNullOrWhiteSpace(value))
                     {
-                        result.Add(new RuleEntry { Type = RuleEntryType.ProcessName, Value = value });
+                        result.Add(new RuleEntry
+                        {
+                            Type = RuleEntryType.ProcessName,
+                            Value = value,
+                            Service = RuleServiceClassifier.Classify(RuleEntryType.ProcessName, value)
+                        });
                     }
                     continue;
                 }
 
                 if (LooksLikeDomain(line))
                 {
-                    result.Add(new RuleEntry { Type = RuleEntryType.DomainSuffix, Value = line });
+                    result.Add(new RuleEntry
+                    {
+                        Type = RuleEntryType.DomainSuffix,
+                        Value = line,
+                        Service = RuleServiceClassifier.Classify(RuleEntryType.DomainSuffix, line)
+                    });
                     continue;
                 }
             }

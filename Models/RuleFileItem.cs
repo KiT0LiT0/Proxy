@@ -12,6 +12,7 @@ namespace ProxyShellReady.Models
         private bool _isEnabled = true;
         private int _entryCount;
         private RuleRoutingMode _routingMode = RuleRoutingMode.Proxy;
+        private string _serviceSummary = string.Empty;
 
         public string Name
         {
@@ -43,13 +44,23 @@ namespace ProxyShellReady.Models
             set { _routingMode = value; OnPropertyChanged(); OnPropertyChanged("DisplaySubtitle"); }
         }
 
+        public string ServiceSummary
+        {
+            get { return _serviceSummary; }
+            set { _serviceSummary = value; OnPropertyChanged(); OnPropertyChanged("DisplaySubtitle"); }
+        }
+
         [JsonIgnore]
         public List<RuleEntry> Entries { get; set; } = new List<RuleEntry>();
 
         [JsonIgnore]
         public string DisplaySubtitle
         {
-            get { return EntryCount + " правил • " + RoutingMode + " • " + FullPath; }
+            get
+            {
+                string services = string.IsNullOrWhiteSpace(ServiceSummary) ? "Services: n/a" : ServiceSummary;
+                return EntryCount + " правил • " + RoutingMode + " • " + services + " • " + FullPath;
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
