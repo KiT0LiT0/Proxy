@@ -394,52 +394,31 @@
                                                                     <RowDefinition Height="Auto"/>
                                                                     <RowDefinition Height="1"/>
                                                                 </Grid.RowDefinitions>
-                                                                <Grid Margin="0,14,0,10">
-                                                                    <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="52"/>
-                                                                        <ColumnDefinition Width="14"/>
-                                                                        <ColumnDefinition Width="*"/>
-                                                                        <ColumnDefinition Width="70"/>
-                                                                    </Grid.ColumnDefinitions>
-                                                                    <Border Width="44" Height="44" CornerRadius="12" VerticalAlignment="Center" BorderBrush="#394354" BorderThickness="1">
-                                                                        <Border.Background>
-                                                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                                                                <GradientStop Color="#2F3746" Offset="0"/>
-                                                                                <GradientStop Color="#222A37" Offset="1"/>
-                                                                            </LinearGradientBrush>
-                                                                        </Border.Background>
-                                                                        <Image Source="Assets1/file.png" Width="22" Height="22" Stretch="Uniform"/>
-                                                                    </Border>
-                                                                    <StackPanel Grid.Column="2" VerticalAlignment="Top">
-                                                                        <TextBlock Text="{Binding Name}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                                                                        <TextBlock Text="{Binding DisplaySubtitle}" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
-                                                                        <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding ServiceGroups}">
-                                                                            <ItemsControl.ItemTemplate>
-                                                                                <DataTemplate>
-                                                                                    <StackPanel Margin="0,0,0,6">
-                                                                                        <TextBlock Foreground="{DynamicResource AccentSoftBrush}" FontSize="11" Margin="0,2,0,2">
-                                                                                            <Run Text="категория "/><Run Text="{Binding Name, Mode=OneWay}"/><Run Text=" x"/><Run Text="{Binding Count, Mode=OneWay}"/><Run Text=":"/>
-                                                                                        </TextBlock>
-                                                                                        <ItemsControl ItemsSource="{Binding Entries}">
-                                                                                            <ItemsControl.ItemTemplate>
-                                                                                                <DataTemplate>
-                                                                                                    <CheckBox IsChecked="{Binding IsEnabled, Mode=TwoWay}"
-                                                                                                              Checked="RuleEntryCheckBox_Changed"
-                                                                                                              Unchecked="RuleEntryCheckBox_Changed"
-                                                                                                              Margin="0,2,0,2"
-                                                                                                              Foreground="{DynamicResource SecondaryTextBrush}">
-                                                                                                        <TextBlock Text="{Binding Value}" FontSize="11"/>
-                                                                                                    </CheckBox>
-                                                                                                </DataTemplate>
-                                                                                            </ItemsControl.ItemTemplate>
-                                                                                        </ItemsControl>
-                                                                                    </StackPanel>
-                                                                                </DataTemplate>
-                                                                            </ItemsControl.ItemTemplate>
-                                                                        </ItemsControl>
-                                                                    </StackPanel>
-                                                                    <ToggleButton Grid.Column="3" Style="{StaticResource RuleSwitchStyle}" IsChecked="{Binding IsEnabled, Mode=TwoWay}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                                                                </Grid>
+                                                                <StackPanel Margin="0,14,0,10">
+                                                                    <TextBlock Foreground="{DynamicResource AccentSoftBrush}" FontSize="13" Margin="0,0,0,6">
+                                                                        <Run Text="категория "/><Run Text="{Binding Name, Mode=OneWay}"/><Run Text=" x"/><Run Text="{Binding Count, Mode=OneWay}"/><Run Text=":"/>
+                                                                    </TextBlock>
+                                                                    <ItemsControl ItemsSource="{Binding Entries}">
+                                                                        <ItemsControl.ItemTemplate>
+                                                                            <DataTemplate>
+                                                                                <Grid Margin="0,2,0,2">
+                                                                                    <Grid.ColumnDefinitions>
+                                                                                        <ColumnDefinition Width="*"/>
+                                                                                        <ColumnDefinition Width="64"/>
+                                                                                    </Grid.ColumnDefinitions>
+                                                                                    <TextBlock Text="{Binding Value}" FontSize="12" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
+                                                                                    <ToggleButton Grid.Column="1"
+                                                                                                  Style="{StaticResource RuleSwitchStyle}"
+                                                                                                  IsChecked="{Binding IsEnabled, Mode=TwoWay}"
+                                                                                                  Checked="RuleEntrySwitch_Changed"
+                                                                                                  Unchecked="RuleEntrySwitch_Changed"
+                                                                                                  HorizontalAlignment="Right"
+                                                                                                  VerticalAlignment="Center"/>
+                                                                                </Grid>
+                                                                            </DataTemplate>
+                                                                        </ItemsControl.ItemTemplate>
+                                                                    </ItemsControl>
+                                                                </StackPanel>
                                                                 <Border Grid.Row="1" Background="#263041"/>
                                                             </Grid>
                                                         </DataTemplate>

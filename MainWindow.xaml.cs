@@ -24,6 +24,7 @@ namespace ProxyShellReady
     {
         private readonly ObservableCollection<AppEntry> _selectedApps = new ObservableCollection<AppEntry>();
         private readonly ObservableCollection<RuleFileItem> _ruleFiles = new ObservableCollection<RuleFileItem>();
+        private readonly ObservableCollection<RuleServiceGroup> _categoryRuleGroups = new ObservableCollection<RuleServiceGroup>();
         private readonly DispatcherTimer _connectionTimer = new DispatcherTimer();
         private readonly SingBoxRunner _runner = new SingBoxRunner();
 
@@ -34,7 +35,6 @@ namespace ProxyShellReady
         private bool _isBusy;
         private bool _settingsVisible;
         private RuleRoutingMode _selectedRuleCategory = RuleRoutingMode.Proxy;
-        private ICollectionView _rulesView;
 
         public MainWindow()
         {
@@ -46,9 +46,7 @@ namespace ProxyShellReady
             _connectionTimer.Tick += ConnectionTimer_Tick;
 
             AppsList.ItemsSource = _selectedApps;
-            _rulesView = CollectionViewSource.GetDefaultView(_ruleFiles);
-            _rulesView.Filter = FilterRuleFileByCategory;
-            RulesListBox.ItemsSource = _rulesView;
+            RulesListBox.ItemsSource = _categoryRuleGroups;
             RuleFilesSettingsListBox.ItemsSource = _ruleFiles;
 
             _state = StateStore.Load();
@@ -483,18 +481,9 @@ namespace ProxyShellReady
             item.ServiceSummary = BuildServiceSummary(item.Entries);
             item.ServiceGroups = BuildServiceGroups(item.Entries);
             item.Name = string.IsNullOrWhiteSpace(item.Name) ? Path.GetFileName(item.FullPath) : item.Name;
-            if (_rulesView != null)
-                _rulesView.Refresh();
+            RebuildCategoryRules();
             if (log)
                 AppendLog("Загружен файл правил: " + item.Name + " (" + item.EntryCount + " записей, авто-режим " + item.RoutingMode + ", " + item.ServiceSummary + ")");
-        }
-
-        private bool FilterRuleFileByCategory(object item)
-        {
-            RuleFileItem ruleFile = item as RuleFileItem;
-            if (ruleFile == null)
-                return false;
-            return ruleFile.RoutingMode == _selectedRuleCategory;
         }
 
         private string BuildServiceSummary(IReadOnlyCollection<RuleEntry> entries)
@@ -531,7 +520,7 @@ namespace ProxyShellReady
                 .ToList();
         }
 
-        private void RuleEntryCheckBox_Changed(object sender, RoutedEventArgs e)
+        private void RuleEntrySwitch_Changed(object sender, RoutedEventArgs e)
         {
             foreach (RuleFileItem file in _ruleFiles)
             {
@@ -540,8 +529,7 @@ namespace ProxyShellReady
                 file.ServiceGroups = BuildServiceGroups(file.Entries);
             }
 
-            if (_rulesView != null)
-                _rulesView.Refresh();
+            RebuildCategoryRules();
             SaveState();
         }
 
@@ -557,6 +545,7 @@ namespace ProxyShellReady
 
             _ruleFiles.Remove(item);
             AppendLog("Удалён русет: " + item.Name);
+            RebuildCategoryRules();
             UpdateRuleFilesEmptyState();
             SaveState();
         }
@@ -568,8 +557,7 @@ namespace ProxyShellReady
 
         private void UpdateRuleFilesEmptyState()
         {
-            bool hasVisibleRule = _ruleFiles.Any(file => file.RoutingMode == _selectedRuleCategory);
-            Visibility visible = hasVisibleRule ? Visibility.Collapsed : Visibility.Visible;
+            Visibility visible = _categoryRuleGroups.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
             EmptyRulesText.Visibility = visible;
             SettingsEmptyRulesText.Visibility = _ruleFiles.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         }
@@ -577,8 +565,7 @@ namespace ProxyShellReady
         private void ProxyCategoryButton_Click(object sender, RoutedEventArgs e)
         {
             _selectedRuleCategory = RuleRoutingMode.Proxy;
-            if (_rulesView != null)
-                _rulesView.Refresh();
+            RebuildCategoryRules();
             UpdateRuleCategoryUi();
             UpdateRuleFilesEmptyState();
         }
@@ -586,8 +573,7 @@ namespace ProxyShellReady
         private void DirectCategoryButton_Click(object sender, RoutedEventArgs e)
         {
             _selectedRuleCategory = RuleRoutingMode.Direct;
-            if (_rulesView != null)
-                _rulesView.Refresh();
+            RebuildCategoryRules();
             UpdateRuleCategoryUi();
             UpdateRuleFilesEmptyState();
         }
@@ -595,10 +581,31 @@ namespace ProxyShellReady
         private void BlockCategoryButton_Click(object sender, RoutedEventArgs e)
         {
             _selectedRuleCategory = RuleRoutingMode.Block;
-            if (_rulesView != null)
-                _rulesView.Refresh();
+            RebuildCategoryRules();
             UpdateRuleCategoryUi();
             UpdateRuleFilesEmptyState();
+        }
+
+        private void RebuildCategoryRules()
+        {
+            List<RuleEntry> entries = _ruleFiles
+                .Where(file => file.RoutingMode == _selectedRuleCategory && file.IsEnabled)
+                .SelectMany(file => file.Entries)
+                .ToList();
+
+            List<RuleServiceGroup> groups = entries
+                .GroupBy(entry => string.IsNullOrWhiteSpace(entry.Service) ? "Other" : entry.Service)
+                .OrderByDescending(group => group.Count())
+                .Select(group => new RuleServiceGroup
+                {
+                    Name = group.Key,
+                    Entries = group.ToList()
+                })
+                .ToList();
+
+            _categoryRuleGroups.Clear();
+            foreach (RuleServiceGroup group in groups)
+                _categoryRuleGroups.Add(group);
         }
 
         private void UpdateRuleCategoryUi()
